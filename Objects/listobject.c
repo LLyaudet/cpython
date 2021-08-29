@@ -1936,21 +1936,14 @@ merge_collapse(MergeState *ms)
     struct s_slice *p = ms->pending;
 
     assert(ms);
-    while (ms->n > 1) {
-        Py_ssize_t n = ms->n - 2;
-        if ((n > 0 && p[n-1].len <= p[n].len + p[n+1].len) ||
-            (n > 1 && p[n-2].len <= p[n-1].len + p[n].len)) {
-            if (p[n-1].len < p[n+1].len)
-                --n;
-            if (merge_at(ms, n) < 0)
-                return -1;
-        }
-        else if (p[n].len <= p[n+1].len) {
-            if (merge_at(ms, n) < 0)
-                return -1;
-        }
-        else
+    while (ms->n > 2) {
+        Py_ssize_t n = ms->n - 3;
+        Py_ssize_t order_of_magnitude = p[n+1].len | p[n+2].len;
+        if(order_of_magnitude < ((~order_of_magnitude) & p[n].len) ){
             break;
+        }
+        if (merge_at(ms, n) < 0)
+            return -1;
     }
     return 0;
 }
